@@ -3,20 +3,34 @@ import os
 from openpyxl import load_workbook
 
 EXCEL_FILE = "uploaded.xlsx"
-DB_FILE = "trades.json"
+import sqlite3
 
+conn = sqlite3.connect("trades.db", check_same_thread=False)
+cursor = conn.cursor()
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS trades (
+    position_id INTEGER PRIMARY KEY,
+    data TEXT
+)
+""")
+conn.commit()
 
 def load_db():
-    if not os.path.exists(DB_FILE):
-        return []
-    with open(DB_FILE, "r") as f:
-        return json.load(f)
-
+    cursor.execute("SELECT data FROM trades")
+    rows = cursor.fetchall()
+    return [json.loads(r[0]) for r in rows]
 
 def save_db(data):
-    with open(DB_FILE, "w") as f:
-        json.dump(data, f, indent=4)
+    cursor.execute("DELETE FROM trades")
 
+    for t in data:
+        cursor.execute(
+            "INSERT INTO trades (position_id, data) VALUES (?, ?)",
+            (t["position_id"], json.dumps(t))
+        )
+
+    conn.commit()
 
 def parse_excel():
     wb = load_workbook(EXCEL_FILE, data_only=True)
