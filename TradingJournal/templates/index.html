@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Trade Journal</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0b1220, #06090f);
+  color: #e5e7eb;
+}
+
+.container { display: flex; height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 340px;
+  background: #0f1420;
+  padding: 16px;
+  overflow-y: auto;
+  border-right: 1px solid #1c2333;
+}
+
+.tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+
+.tab {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #1b2130;
+  cursor: pointer;
+  font-size: 12px;
+  color: #9aa4b2;
+}
+
+.tab.active { background: #2563eb; color: white; }
+
+/* TRADE CARD */
+.trade {
+  background: #141a26;
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: 0.2s;
+}
+
+.trade:hover {
+  border: 1px solid #3b82f6;
+}
+
+.trade.active {
+  border: 1px solid #3b82f6;
+  box-shadow: 0 0 14px rgba(59,130,246,0.4);
+}
+
+/* 🔥 PENDING GLOW */
+.trade.pending {
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  box-shadow: 
+    0 0 14px rgba(239, 68, 68, 0.35),
+    0 0 26px rgba(239, 68, 68, 0.15);
+}
+
+/* TEXT */
+.pnl-pos { color: #22c55e; font-weight: 500; }
+.pnl-neg { color: #ef4444; font-weight: 500; }
+
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  padding: 36px 56px;
+  font-size: 14px;
+}
+
+/* HEADER */
+.trade-header { margin-bottom: 28px; }
+
+#title {
+  font-size: 28px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.win-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.meta {
+  margin-top: 8px;
+  font-size: 15px;
+  color: #94a3b8;
+}
+
+/* SECTIONS */
+.section { margin-top: 30px; }
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #60a5fa;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ROW */
+.section-row { display: flex; gap: 18px; }
+.section.half { flex: 1; }
+
+/* INPUT */
+.input-box {
+  background: linear-gradient(to right, #0f172a, transparent);
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+textarea, input {
+  width: 100%;
+  background: #05080f;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: white;
+  padding: 18px;
+  font-size: 14px;
+  border-radius: 14px;
+}
+
+textarea {
+  min-height: 100px;
+}
+
+/* CHECKLIST */
+.checklist { display: flex; gap: 16px; margin-top: 12px; }
+
+.check-card {
+  width: 200px;
+  height: 125px;
+  background: linear-gradient(145deg, #0f172a, #0b1220);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.check-card:hover {
+  border-color: #3b82f6;
+}
+
+.check-card span {
+  font-size: 13px;
+  color: #cbd5f5;
+}
+
+.check-card input {
+  transform: scale(1.2);
+  accent-color: #3b82f6;
+}
+
+/* ADD CUSTOM */
+.add-card {
+  border: 1px dashed rgba(255,255,255,0.2);
+  background: transparent;
+  cursor: pointer;
+  color: #9aa4b2;
+}
+
+.add-card:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* SLIDER (FIXED GRADIENT) */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(
+    to right,
+    #ef4444,
+    #f59e0b,
+    #22c55e,
+    #3b82f6
+  );
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 6px;
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #2563eb;
+  cursor: pointer;
+  margin-top: -4px;
+  box-shadow: 0 0 10px rgba(59,130,246,0.6);
+}
+
+/* BUTTON */
+button {
+  margin-top: 14px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+}
+
+/* UPLOAD */
+.upload-section { margin-bottom: 16px; }
+
+.file-input {
+  display: block;
+  width: 100%;
+  background: #05080f;
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  color: #9aa4b2;
+}
+
+.file-input input { display: none; }
+
+.upload-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.upload-actions button { flex: 1; }
+
+.sync-btn {
+  background: linear-gradient(135deg, #374151, #1f2937);
+}
+
+/* HEADER ACTION */
+.modern-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+
+.rr-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rr-box input {
+  width: 60px;
+  text-align: center;
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 10px;
+  background: #0b1220;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.rr-box span {
+  font-size: 16px;
+  color: #60a5fa;
+}
+</style>
+</head>
+
+<body>
+  <div style="position:fixed;top:0;width:100%;background:#0f1420;border-bottom:1px solid #1c2333;padding:10px 20px;z-index:999;display:flex;gap:10px;">
+  <div id="btnJournal" onclick="showPage('journal')" style="padding:6px 14px;border-radius:20px;background:#2563eb;color:white;cursor:pointer;">Journal</div>
+  <div id="btnDashboard" onclick="showPage('dashboard')" style="padding:6px 14px;border-radius:20px;background:#1b2130;color:#9aa4b2;cursor:pointer;">Dashboard</div>
+</div>
+
+<div id="journalPage" style="margin-top:50px;">
+<div class="container">
+
+<div class="sidebar">
+
+  <div class="upload-section">
+
+  <label class="file-input">
+    <input type="file" id="uploadExcel" accept=".xlsx">
+    <span>Select Report</span>
+  </label>
+
+  <div class="upload-actions">
+    <button onclick="uploadExcel()">Upload</button>
+    <button onclick="sync()" class="sync-btn">Sync</button>
+  </div>
+
+</div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-all" onclick="setFilter('all', this)">All</div>
+    <div class="tab" id="tab-journaled" onclick="setFilter('journaled', this)">Journaled</div>
+    <div class="tab" id="tab-pending" onclick="setFilter('pending', this)">Pending</div>
+  </div>
+  <div id="tradeList"></div>
+</div>
+
+<div class="main">
+
+<div class="trade-header modern-header">
+
+  <div class="header-left">
+    <div id="title"></div>
+    <div id="meta" class="meta"></div>
+  </div>
+
+  <div class="header-actions">
+  <button onclick="save()" class="primary-btn">Save</button>
+</div>
+
+</div>
+
+<div class="section">
+  <div class="section-title">PRE-TRADE ANALYSIS</div>
+  <div class="input-box"><textarea id="pre"></textarea></div>
+</div>
+
+<div class="section">
+  <div class="section-title">POST-TRADE REVIEW</div>
+  <div class="input-box"><textarea id="post"></textarea></div>
+</div>
+
+<div class="section">
+  <div class="section-title">RISK : REWARD</div>
+  <div class="rr-box">
+  <input id="rr1" type="number" value="1">
+  <span>:</span>
+  <input id="rr2" type="number">
+</div>
+</div>
+
+<div class="section-row">
+  <div class="section half">
+    <div class="section-title">EMOTIONS</div>
+    <div class="input-box"><textarea id="emotions"></textarea></div>
+  </div>
+
+  <div class="section half">
+    <div class="section-title">LESSONS LEARNED</div>
+    <div class="input-box"><textarea id="lessons"></textarea></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">EXECUTION CHECKLIST</div>
+    <span id="checkCount">0/6</span>
+  </div>
+
+  <div class="checklist" id="checklist">
+    <label class="check-card"><input type="checkbox" value="htf"><span>Checked higher timeframe</span></label>
+    <label class="check-card"><input type="checkbox" value="risk"><span>Risk within limits</span></label>
+    <label class="check-card"><input type="checkbox" value="plan"><span>Fits my trading plan</span></label>
+    <label class="check-card"><input type="checkbox" value="levels"><span>Key levels identified</span></label>
+    <label class="check-card"><input type="checkbox" value="news"><span>Economic calendar checked</span></label>
+    <label class="check-card"><input type="checkbox" value="entry"><span>Confirmation entry</span></label>
+    <div class="check-card add-card" onclick="addCustomCheck()">
+  <span>+ Add Custom</span>
+</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">RATING</div>
+    <span id="ratingValue">5/10</span>
+  </div>
+  <input type="range" min="1" max="10" value="5" id="rating">
+</div>
+
+</div>
+</div>
+
+<script>
+let trades = [], selected = null, filter = "all"
+
+const ratingSlider = document.getElementById("rating")
+const ratingValue = document.getElementById("ratingValue")
+
+ratingSlider.oninput = () => ratingValue.innerText = ratingSlider.value + "/10"
+
+function updateChecklist() {
+  const checked = [...document.querySelectorAll("#checklist input")].filter(c => c.checked).length
+  document.getElementById("checkCount").innerText = checked + "/6"
+}
+
+document.addEventListener("change", e => {
+  if (e.target.closest("#checklist")) updateChecklist()
+})
+
+function animateValue(el, start, end, duration) {
+  let startTime = null
+  function animate(t) {
+    if (!startTime) startTime = t
+    const p = Math.min((t - startTime) / duration, 1)
+    const v = start + (end - start) * p
+    el.innerText = (end > 0 ? "+$" : "-$") + Math.abs(v).toFixed(2)
+    if (p < 1) requestAnimationFrame(animate)
+  }
+  requestAnimationFrame(animate)
+}
+
+function calculateRR(t){
+  if(!t.entry_price || !t.sl || !t.tp) return null
+  return (Math.abs(t.tp - t.entry_price) / Math.abs(t.entry_price - t.sl)).toFixed(2)
+}
+
+async function loadTrades(){
+  const res = await fetch("/trades")
+  trades = await res.json()
+  updateCounts()
+  renderTrades()
+}
+
+function updateCounts(){
+  const all = trades.length
+  const journaled = trades.filter(t => t.journal && t.journal.pre_trade).length
+  const pending = all - journaled
+
+  document.getElementById("tab-all").innerText = `All ${all}`
+  document.getElementById("tab-journaled").innerText = `Journaled ${journaled}`
+  document.getElementById("tab-pending").innerText = `Pending ${pending}`
+}
+
+function setFilter(f, el){
+  filter = f
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"))
+  el.classList.add("active")
+  renderTrades()
+}
+
+function renderTrades(){
+  const list = document.getElementById("tradeList")
+  list.innerHTML = ""
+
+  let filtered = [...trades].sort((a, b) => new Date(b.close_time) - new Date(a.close_time))
+
+  if(filter === "journaled") filtered = trades.filter(t => t.journal?.pre_trade)
+  if(filter === "pending") filtered = trades.filter(t => !t.journal?.pre_trade)
+
+  filtered.forEach(t => {
+    const commission = (t.volume || 0) * 10
+    const net = (t.profit || 0) - commission
+    const pnlClass = net > 0 ? "pnl-pos" : "pnl-neg"
+    const isJournaled = t.journal && t.journal.pre_trade
+
+    const div = document.createElement("div")
+    div.className = "trade" + (!isJournaled ? " pending" : "")
+
+    div.innerHTML = `
+      <b>${t.symbol}</b><br>
+      ${t.type} • $${t.entry_price.toFixed(2)} • 
+      <span class="${pnlClass}">
+        ${net > 0 ? "+$" : "-$"}${Math.abs(net).toFixed(2)}
+      </span>
+    `
+
+    div.onclick = () => selectTrade(trades.indexOf(t))
+    list.appendChild(div)
+  })
+}
+
+function selectTrade(i){
+  selected = trades[i]
+  const t = selected
+
+  // ✅ CORRECT RR
+  const rr = calculateRR(t)
+
+  // ✅ FILL RR BOX
+  if(rr){
+    const rr1 = document.getElementById("rr1")
+    const rr2 = document.getElementById("rr2")
+
+    if(rr1 && rr2){
+      rr1.value = 1
+      rr2.value = rr
+    }
+  }
+
+  const commission = (t.volume || 0) * 10
+  const tradeNet = (t.profit || 0) - commission
+  const pnlClass = tradeNet > 0 ? "pnl-pos" : "pnl-neg"
+
+  document.getElementById("title").innerHTML = `
+    <div style="display:flex;gap:10px;align-items:center;">
+      <b>${t.symbol}</b>
+      <span class="win-badge" style="background:${tradeNet>0?'#22c55e':'#ef4444'};">
+        ${tradeNet>0?'WINNER':'LOSER'}
+      </span>
+      <span id="pnlValue" class="${pnlClass}"></span>
+    </div>
+  `
+
+  animateValue(document.getElementById("pnlValue"), 0, tradeNet, 600)
+
+  document.getElementById("meta").innerHTML = `
+    ${t.type} • Entry $${t.entry_price.toFixed(2)} • Size ${t.volume}<br>
+    SL ${t.sl||"-"} • TP ${t.tp||"-"} • RR ${rr||"-"}
+  `
+
+  pre.value = t.journal?.pre_trade || ""
+  post.value = t.journal?.post_trade || ""
+  emotions.value = t.journal?.emotions || ""
+  lessons.value = t.journal?.lessons || ""
+
+  document.querySelectorAll("#checklist input").forEach(cb=>{
+    cb.checked = t.journal?.checklist?.[cb.value] || false
+  })
+
+  updateChecklist()
+}
+
+async function save(){
+  if(!selected) return
+
+  const checklist = {}
+  document.querySelectorAll("#checklist input").forEach(cb=>{
+    checklist[cb.value] = cb.checked
+  })
+
+  selected.journal = {
+    pre_trade: pre.value,
+    post_trade: post.value,
+    emotions: emotions.value,
+    lessons: lessons.value,
+    checklist
+  }
+
+  await fetch("/save", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(trades)
+  })
+
+  updateCounts()
+  renderTrades()
+}
+
+async function sync(){
+  await fetch("/sync",{method:"POST"})
+  loadTrades()
+}
+
+loadTrades()
+
+function showPage(page){
+  document.getElementById("journalPage").style.display = page==="journal" ? "block" : "none"
+  document.getElementById("dashboardPage").style.display = page==="dashboard" ? "block" : "none"
+
+  document.getElementById("btnJournal").style.background = page==="journal" ? "#2563eb" : "#1b2130"
+  document.getElementById("btnDashboard").style.background = page==="dashboard" ? "#2563eb" : "#1b2130"
+
+  if(page==="dashboard") renderCalendar()
+}
+
+function renderCalendar(){
+  const cal = document.getElementById("calendar")
+  cal.innerHTML=""
+
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  document.getElementById("monthLabel").innerText =
+    now.toLocaleString("default", { month: "long", year: "numeric" })
+
+  const daily = {}
+  trades.forEach(t=>{
+    if(!t.close_time) return
+    const d = new Date(t.close_time)
+    if(d.getMonth()!==month || d.getFullYear()!==year) return
+
+    const day = d.getDate()
+    const commission = (t.volume || 0) * 10
+const dayNet = (t.profit || 0) - commission
+
+daily[day] = (daily[day] || 0) + dayNet
+  })
+
+  let monthlyTotal = 0
+  let weekTotal = 0
+
+  // offset for start day
+  let startOffset = (firstDay + 6) % 7
+
+  for(let i=0;i<startOffset;i++){
+    const empty = document.createElement("div")
+    cal.appendChild(empty)
+  }
+
+  for(let day=1; day<=daysInMonth; day++){
+
+    const val = daily[day] || 0
+    monthlyTotal += val
+    weekTotal += val
+
+    const div = document.createElement("div")
+    div.style.height="95px"
+    div.style.borderRadius="16px"
+    div.style.padding="10px"
+    div.style.background="#0b1220"
+    div.style.border="1px solid #1c2333"
+    div.style.fontSize="12px"
+    div.style.display="flex"
+    div.style.flexDirection="column"
+    div.style.justifyContent="space-between"
+
+    if(val>0){
+      div.style.border="1px solid rgba(59,130,246,0.6)"
+      div.style.boxShadow="0 0 12px rgba(59,130,246,0.3)"
+    }
+    if(val<0){
+      div.style.border="1px solid rgba(239,68,68,0.6)"
+      div.style.boxShadow="0 0 12px rgba(239,68,68,0.3)"
+    }
+
+    div.innerHTML = `
+      <div style="color:#6b7280;">${day}</div>
+      <div style="font-weight:600; color:${val>0?"#3b82f6":val<0?"#ef4444":"#9aa4b2"};">
+        ${val!==0?(val>0?"+$":"-$")+Math.abs(val).toFixed(2):""}
+      </div>
+    `
+
+    cal.appendChild(div)
+
+    // WEEK COLUMN
+    if((day + startOffset) % 7 === 0){
+      const weekDiv = document.createElement("div")
+      weekDiv.style.height="95px"
+      weekDiv.style.borderRadius="16px"
+      weekDiv.style.padding="10px"
+      weekDiv.style.background="#0b1220"
+      weekDiv.style.border="1px solid #1c2333"
+      weekDiv.style.display="flex"
+      weekDiv.style.flexDirection="column"
+      weekDiv.style.justifyContent="center"
+      weekDiv.style.alignItems="center"
+
+      weekDiv.innerHTML = `
+        <div style="font-size:11px;color:#6b7280;">WEEKLY</div>
+        <div style="font-weight:700; color:${weekTotal>0?"#3b82f6":weekTotal<0?"#ef4444":"#9aa4b2"};">
+          ${(weekTotal>0?"+$":"-$")+Math.abs(weekTotal).toFixed(2)}
+        </div>
+        <div style="font-size:10px;color:#6b7280;">Traded Days</div>
+      `
+
+      cal.appendChild(weekDiv)
+      weekTotal = 0
+    }
+  }
+
+  document.getElementById("monthlyTotal").innerText =
+    (monthlyTotal>0?"+$":"-$")+Math.abs(monthlyTotal).toFixed(2)
+}
+
+async function uploadExcel(){
+  const fileInput = document.getElementById("uploadExcel")
+  const file = fileInput.files[0]
+
+  if(!file){
+    alert("Please select a file")
+    return
+  }
+
+  const formData = new FormData()
+  formData.append("file", file)
+
+  await fetch("/upload", {
+    method: "POST",
+    body: formData
+  })
+
+  alert("Upload successful ✅")   // 👈 ADD THIS
+  loadTrades()
+}
+
+function addCustomCheck(){
+  const text = prompt("Enter checklist item:")
+  if(!text) return
+
+  const container = document.getElementById("checklist")
+
+  const div = document.createElement("label")
+  div.className = "check-card"
+
+  div.innerHTML = `
+    <input type="checkbox" value="${text}">
+    <span>${text}</span>
+  `
+
+  // insert before add button
+  container.insertBefore(div, container.lastElementChild)
+}
+</script>
+
+</div> <!-- END journalPage -->
+
+<!-- ================= DASHBOARD ================= -->
+<div id="dashboardPage" style="display:none; margin-top:50px; padding:20px;">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="margin:0;">Monthly P&L</h2>
+    <div style="font-size:14px;color:#9aa4b2;">
+      Monthly: <span id="monthlyTotal" style="color:#3b82f6;"></span>
+      &nbsp;&nbsp; <span id="monthLabel"></span>
+    </div>
+  </div>
+
+  <!-- DAYS HEADER -->
+  <div style="
+    display:grid;
+    grid-template-columns: repeat(8,1fr);
+    gap:10px;
+    margin-bottom:8px;
+    font-size:12px;
+    color:#6b7280;
+  ">
+    <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div><div style="text-align:center;">Weekly</div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div id="calendar" style="
+    display:grid;
+    grid-template-columns: repeat(8,1fr);
+    gap:10px;
+  "></div>
+
+  <!-- LEGEND -->
+  <div style="margin-top:20px;font-size:12px;color:#6b7280;">
+    <span style="color:#3b82f6;">●</span> Profit
+    &nbsp;&nbsp;
+    <span style="color:#ef4444;">●</span> Loss
+  </div>
+
+</div>
+
+</div>
+</body>
+</html>
